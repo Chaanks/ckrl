@@ -9,9 +9,11 @@ edition = "2018"
 [dependencies]
 glutin = "0.22"
 glow = "0.4"
-
+log = "0.4"
+chrono = "0.4"
+env_logger = "0.7"
 
 [lib]
-name = "gckrl"
+name = "ckrl"
 path = "src/lib.rs"
 
