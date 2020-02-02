@@ -1,15 +1,16 @@
 use crate::window::{Window, InitHints};
 use crate::Result;
 
+
 pub struct Context {
-    gl: glow::Context,
-    window: Window,
+    pub gl: glow::Context,
+    pub window: Window,
 }
 
 impl Context {
     fn new(settings: &ContextBuilder) -> Result<Context> {
         let (window, gl_context) = Window::new(settings)?;
-
+        
         Ok(Self {
             gl: gl_context,
             window,

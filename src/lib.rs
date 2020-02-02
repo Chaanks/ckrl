@@ -1,6 +1,7 @@
 pub mod window;
 pub mod context;
 pub mod logger;
+pub mod gl;
 
 pub use self::logger::start_logger;
 

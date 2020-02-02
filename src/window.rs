@@ -36,7 +36,7 @@ impl Window {
             .set_fullscreen(Some(glutin::window::Fullscreen::Borderless(mh)));
         }
     
-        let gl = glow::Context::from_loader_function(|ptr| {
+        let gl = GlowContext::from_loader_function(|ptr| {
             windowed_context.get_proc_address(ptr) as *const _
         });
 
