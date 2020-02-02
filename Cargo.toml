@@ -13,8 +13,14 @@ log = "0.4"
 chrono = "0.4"
 env_logger = "0.7"
 bytemuck = "1.1.0"
+failure = "0.1"
 
 [lib]
 name = "ckrl"
 path = "src/lib.rs"
 
+
+#https://github.com/ryanisaacg/golem
+#https://github.com/jaynus/balls
+#https://github.com/17cupsofcoffee/tetra
+#https://github.com/thebracket/rltk_rs

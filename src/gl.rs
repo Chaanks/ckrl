@@ -1,6 +1,4 @@
 use glow::{Context as GlowContext, HasContext};
-use std::mem;
-use std::rc::Rc;
 
 use crate::Result;
 
