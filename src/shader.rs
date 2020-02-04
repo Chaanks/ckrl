@@ -9,6 +9,14 @@ pub struct RawProgram {
     id: ProgramId
 }
 
+impl RawProgram {
+    pub fn bind(&self, gl: &GlowContext) {
+        unsafe {
+            gl.use_program(Some(self.id));
+        }
+    }
+}
+
 
 pub fn new_program(
     gl: &GlowContext,
@@ -50,7 +58,6 @@ pub fn new_program(
         
         Ok(RawProgram { id:program_id })
     }
-
-
 }
+
     
