@@ -1,5 +1,5 @@
 use glow::{Context as GlowContext, HasContext};
-use log::error;
+use log::{error, info};
 
 use crate::Result;
 
@@ -27,13 +27,13 @@ pub fn new_program(
     unsafe {
         // vertex shader
         let vertex_id = gl.create_shader(glow::VERTEX_SHADER)?;
+        info!("glGetError {}",gl.get_error());
         gl.shader_source(vertex_id, &vertex_code);
         gl.compile_shader(vertex_id);
         if !gl.get_shader_compile_status(vertex_id) {
             error!("Failed to compile vertex shader");
             return Err(failure::err_msg(gl.get_shader_info_log(vertex_id)).into());
         }
-
         // fragment shader
         let fragment_id = gl.create_shader(glow::FRAGMENT_SHADER)?;
         gl.shader_source(fragment_id, &fragment_code);

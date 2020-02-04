@@ -5,6 +5,7 @@ use glow::{Context as GlowContext, HasContext};
 
 use log::{info, error};
 
+
 use ckrl::context::{Context, ContextBuilder};
 use ckrl::window::InitHints;
 use ckrl::gl as device;
@@ -41,7 +42,7 @@ impl MyApp {
         let event_loop = self.ctx.window.el;
         let windowed_context = self.ctx.window.wc;
         let gl = self.ctx.gl;
-
+        
         println!(
             "Pixel format of the window's GL context: {:?}",
             windowed_context.get_pixel_format()
@@ -56,9 +57,8 @@ impl MyApp {
 
         let buffer = device::new_vertex_buffer(&gl, Some(&vertices)).expect("Failed to create vertex buffer");
         let vao: u32;
-        unsafe { vao = gl.create_vertex_array().unwrap(); }
+        unsafe { vao = gl.create_vertex_array().unwrap();}
         device::set_vertex_buffer_attribute(&gl, &buffer);
-        
         let program = shader::new_program(&gl, ckrl::VERTEX_SHADER, ckrl::FRAGMENT_SHADER).expect("Failed to create shader program");
 
         event_loop.run(move |event, _, control_flow| {
@@ -69,15 +69,16 @@ impl MyApp {
                 gl.clear_color(0.2, 0.3, 0.3, 1.0);
                 gl.clear(glow::COLOR_BUFFER_BIT);
 
+
                 program.bind(&gl);
                 gl.bind_vertex_array(Some(vao));
                 device::bind_vertex_buffer(&gl, Some(&buffer));
-                gl.draw_elements(
-                    glow::TRIANGLES,
-                    3,
-                    glow::UNSIGNED_INT,
-                    0,
-                );
+                //gl.draw_elements(
+                //    glow::TRIANGLES,
+                //    3,
+                //    glow::UNSIGNED_INT,
+                //   0,
+                //);
             }
 
             match event {

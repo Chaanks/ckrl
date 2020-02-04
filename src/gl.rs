@@ -21,24 +21,17 @@ pub fn set_vertex_buffer_attribute(
     buffer: &RawVertexBuffer,
 ) {
     unsafe {
-        let index = 0;
-        let size = buffer.size as i32;
-        let data_type = glow::FLOAT;
-        let normalized = false;
-        let stride = (buffer.stride * mem::size_of::<f32>()) as i32;
-        let offset = 0;
-
+        bind_vertex_buffer(gl, Some(buffer));
         gl.vertex_attrib_pointer_f32(
-            index,
-            size,
-            data_type,
-            normalized,
-            stride,
-            offset
+            0,
+            buffer.size as i32,
+            glow::FLOAT,
+            false,
+            (buffer.stride * mem::size_of::<f32>()) as i32,
+            0,
         );
-
-        gl.enable_vertex_attrib_array(index);
-
+        info!("glGetError {}",gl.get_error());
+        gl.enable_vertex_attrib_array(0);
     }
 }
 
@@ -48,37 +41,26 @@ pub fn new_vertex_buffer(
     data: Option<&[f32]>,
 ) -> Result<RawVertexBuffer> {
     info!("New vertex buffer");
-    unsafe {
-        let id = gl.create_buffer()?;
-        gl.bind_buffer(glow::ARRAY_BUFFER, Some(id));
-
-        if let Some(data) = data {
-            //let u8_buffer = bytemuck::cast_slice(data);
-            //size = u8_buffer.len();
-            
-            //gl.buffer_data_size(glow::ARRAY_BUFFER, size as i32, glow::STREAM_DRAW);
-            let stride = 3;
-            let size = std::mem::size_of_val(data) / std::mem::size_of::<u8>();
-            info!("buffer size: {}", size);
-            let byte_slice = std::slice::from_raw_parts(data.as_ptr() as *const u8, size);
-        
-            let buffer = RawVertexBuffer {
-                ctx: CtxWrapper::new(gl),
-                id,
-                size,
-                stride,
-
-            };
-
-            bind_vertex_buffer(gl, Some(&buffer));
-            gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, byte_slice, glow::STREAM_DRAW);
-
-            return Ok(buffer);
-
-        }
-
-        Err(failure::err_msg("No data").into())
-    }
+    let mut size = 0;
+    Ok(RawVertexBuffer {
+        ctx:CtxWrapper::new(gl),
+        id: unsafe {
+            let id = gl.create_buffer()?;
+            info!("id: {}", id); 
+            if let Some(data) = data { 
+                let u8_buffer = bytemuck::cast_slice(data);
+                size = u8_buffer.len();
+                gl.buffer_data_u8_slice(glow::ARRAY_BUFFER, u8_buffer, glow::STREAM_DRAW);
+            }
+            id
+        },
+        size: size,
+        stride: 3,
+        })
+    
+    //gl.buffer_data_size(glow::ARRAY_BUFFER, size as i32, glow::STREAM_DRAW);
+    //let size = std::mem::size_of_val(data) / std::mem::size_of::<u8>();
+    //let byte_slice = std::slice::from_raw_parts(data.as_ptr() as *const u8, size);
 }
 
 pub fn bind_vertex_buffer(gl: &GlowContext, buffer: Option<&RawVertexBuffer>) {
