@@ -55,7 +55,7 @@ impl MyApp {
         ];
 
 
-        let buffer = device::new_vertex_buffer(&gl, Some(&vertices)).expect("Failed to create vertex buffer");
+        let buffer = device::new_vertex_buffer_(&gl, Some(&vertices)).expect("Failed to create vertex buffer");
         let vao: u32;
         unsafe { vao = gl.create_vertex_array().unwrap();}
         device::set_vertex_buffer_attribute(&gl, &buffer);
@@ -72,13 +72,13 @@ impl MyApp {
 
                 program.bind(&gl);
                 gl.bind_vertex_array(Some(vao));
-                device::bind_vertex_buffer(&gl, Some(&buffer));
-                //gl.draw_elements(
-                //    glow::TRIANGLES,
-                //    3,
-                //    glow::UNSIGNED_INT,
-                //   0,
-                //);
+                //device::bind_vertex_buffer(&gl, Some(&buffer));
+                gl.draw_elements(
+                    glow::TRIANGLES,
+                    3,
+                    glow::UNSIGNED_INT,
+                   0,
+                );
             }
 
             match event {
