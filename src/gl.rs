@@ -21,7 +21,7 @@ pub fn set_vertex_buffer_attribute(
     buffer: &RawVertexBuffer,
 ) {
     unsafe {
-        //bind_vertex_buffer(gl, Some(buffer));
+        bind_vertex_buffer(gl, Some(buffer));
         info!("glGetError0 {}",gl.get_error());
         gl.vertex_attrib_pointer_f32(
             0,

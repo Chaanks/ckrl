@@ -73,11 +73,10 @@ impl MyApp {
                 program.bind(&gl);
                 gl.bind_vertex_array(Some(vao));
                 //device::bind_vertex_buffer(&gl, Some(&buffer));
-                gl.draw_elements(
+                gl.draw_arrays(
                     glow::TRIANGLES,
+                    0,
                     3,
-                    glow::UNSIGNED_INT,
-                   0,
                 );
             }
 
