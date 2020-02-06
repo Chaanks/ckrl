@@ -2,7 +2,6 @@ pub mod window;
 pub mod context;
 pub mod logger;
 pub mod gl;
-pub mod shader;
 pub mod shader_string;
 
 pub use self::logger::start_logger;

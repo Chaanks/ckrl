@@ -43,13 +43,25 @@ impl MyApp {
         
         let event_loop = self.ctx.window.el;
         let windowed_context = self.ctx.window.wc;
-        let device = self.ctx.device;
+        let mut device = self.ctx.device;
+
+        let vertices: [f32;9] = [
+            -0.5, -0.5, 0.0,
+            0.5, -0.5, 0.0,
+            0.0, 0.5, 0.0,
+        ];
+
+
+        let buffer = device.new_vertex_buffer_(Some(&vertices)).expect("Failed to create vertex buffer");
+        device.set_vertex_buffer_attribute(&buffer);
+        let program = device.new_program(ckrl::VERTEX_SHADER, ckrl::FRAGMENT_SHADER).expect("Failed to create shader program");
 
         event_loop.run(move |event, _, control_flow| {
             //println!("{:?}", event);
             *control_flow = ControlFlow::Wait;
 
             device.clear(0.2, 0.3, 0.3, 1.0);
+            device.draw(&buffer, &program);
 
             match event {
                 Event::LoopDestroyed => return,

@@ -1,4 +1,4 @@
-use glutin::{dpi::LogicalSize, event_loop::EventLoop, window::WindowBuilder, ContextBuilder};
+use glutin::{dpi::LogicalSize, event_loop::EventLoop, window::WindowBuilder, ContextBuilder, PixelFormat};
 use glow::Context as GlowContext;
 use crate::Result;
 use crate::context;
@@ -44,6 +44,10 @@ impl Window {
             el,
             wc: windowed_context,
         }, gl))
+    }
+
+    pub fn get_pixel_format(&self) -> PixelFormat {
+        return self.wc.get_pixel_format();
     }
 }
 

@@ -1,18 +1,19 @@
 use crate::window::{Window, InitHints};
 use crate::Result;
-
+use crate::gl::GraphicsDevice;
 
 pub struct Context {
-    pub gl: glow::Context,
+    pub device: GraphicsDevice,
     pub window: Window,
 }
 
 impl Context {
     fn new(settings: &ContextBuilder) -> Result<Context> {
         let (window, gl_context) = Window::new(settings)?;
-        
+        let device = GraphicsDevice::new(gl_context)?;
+
         Ok(Self {
-            gl: gl_context,
+            device,
             window,
         })
         
