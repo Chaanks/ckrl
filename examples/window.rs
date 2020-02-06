@@ -1,8 +1,6 @@
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::ControlFlow;
 
-use glow::{Context as GlowContext, HasContext};
-
 use log::{info, error};
 
 use ckrl::context::{Context, ContextBuilder};

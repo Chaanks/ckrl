@@ -21,6 +21,7 @@ impl CtxWrapper {
 pub struct GraphicsDevice {
     pub gl: Rc<GlowContext>,
     current_vertex_buffer: Option<BufferId>,
+    current_index_buffer: Option<BufferId>,
     current_program: Option<ProgramId>,
     current_vertex_array: Option<VertexArrayId>,
 }
@@ -41,6 +42,7 @@ impl GraphicsDevice {
                 gl: Rc::new(gl),
 
                 current_vertex_buffer: None,
+                current_index_buffer: None,
                 current_program: None,
                 current_vertex_array: Some(current_vertex_array),
             })
@@ -87,24 +89,31 @@ impl GraphicsDevice {
         }
     }
 
+    
+    //pub fn new_vertex_buffer(
+    //    &mut self,
+    //    count: u32,
+    //    stride: u32,
+    //)
+
     pub fn new_vertex_buffer_(
         &mut self,
         data: Option<&[f32]>,
     ) -> Result<RawVertexBuffer> {
         unsafe {
             let id = self.gl.create_buffer()?;
-    
+
+            let u8_buffer = bytemuck::cast_slice(data.unwrap());
+            let size = u8_buffer.len();
+
             let buffer = RawVertexBuffer {
-                ctx: CtxWrapper::new(&self.gl),
+                gl: Rc::clone(&self.gl),
                 id,
-                size: 36,
+                count: size,
                 stride: 3,
             };
     
             self.bind_vertex_buffer(Some(&buffer));
-    
-            let u8_buffer = bytemuck::cast_slice(data.unwrap());
-            let size = u8_buffer.len();
     
             self.gl.buffer_data_size(
                 glow::ARRAY_BUFFER,
@@ -125,7 +134,7 @@ impl GraphicsDevice {
         unsafe {
             self.bind_vertex_buffer(Some(buffer));
 
-            info!("glGetError0 {}", self.gl.get_error());
+            //info!("glGetError0 {}", self.gl.get_error());
 
             self.gl.vertex_attrib_pointer_f32(
                 0,
@@ -135,10 +144,35 @@ impl GraphicsDevice {
                 (buffer.stride * mem::size_of::<f32>()) as i32,
                 0,
             );
-            info!("glGetError {}", self.gl.get_error());
             self.gl.enable_vertex_attrib_array(0);
         }
     }
+
+
+    // pub fn new_index_buffer(
+    //     &mut self,
+    //     data: Option<&[u32]>,
+    // ) -> Result<RawIndexBuffer> {
+    //     unsafe {
+    //         let id = self.gl.create_buffer()?;
+
+    //         let buffer = RawIndexBuffer {
+    //             gl: Rc::clone(&self.gl),
+    //             id,
+    //             count,
+    //         };
+
+    //         self.bind_index_buffer(Some(&buffer));
+
+    //         self.gl.buffer_data_size(
+    //             glow::ELEMENT_ARRAY_BUFFER,
+    //             (count * mem::size_of::<u32>()) as i32,
+    //             usage.into(),
+    //         );
+
+    //         Ok(buffer)
+    //     }
+    // }
 
     pub fn new_program(
         &mut self,
@@ -205,21 +239,57 @@ impl GraphicsDevice {
 
 }
 
-#[derive(Debug)]
-pub struct RawVertexBuffer {
-    ctx: CtxWrapper,
-    id: BufferId,
-    size: usize,
-    stride: usize,
+macro_rules! handle_impls {
+    ($name:ty, $delete:ident) => {
+        impl PartialEq for $name {
+            fn eq(&self, other: &$name) -> bool {
+                self.id == other.id
+            }
+        }
+
+        impl Drop for $name {
+            fn drop(&mut self) {
+                unsafe {
+                    self.gl.$delete(self.id);
+                }
+            }
+        }
+    };
 }
 
-impl Drop for RawVertexBuffer {
-    fn drop(&mut self) {
-        unsafe {
-            (*self.ctx.0).delete_buffer(self.id);
+#[derive(Clone, Copy)]
+pub enum BufferUsage {
+    StaticDraw,
+    DynamicDraw,
+}
+
+impl From<BufferUsage> for u32 {
+    fn from(buffer_usage: BufferUsage) -> u32{
+        match buffer_usage {
+            BufferUsage::StaticDraw => glow::STATIC_DRAW,
+            BufferUsage::DynamicDraw => glow::DYNAMIC_DRAW,
         }
     }
 }
+
+#[derive(Debug)]
+pub struct RawVertexBuffer {
+    gl: Rc<GlowContext>,
+    id: BufferId,
+    count: usize,
+    stride: usize,
+}
+
+handle_impls!(RawVertexBuffer, delete_buffer);
+
+#[derive(Debug)]
+pub struct RawIndexBuffer {
+    gl: Rc<GlowContext>,
+    id: BufferId,
+    count: usize,
+}
+
+handle_impls!(RawIndexBuffer, delete_buffer);
 
 pub struct RawProgram {
     id: ProgramId
