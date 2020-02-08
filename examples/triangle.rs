@@ -7,6 +7,8 @@ use log::{info, error};
 
 use ckrl::context::{Context, ContextBuilder};
 use ckrl::window::InitHints;
+use ckrl::gl::BufferUsage;
+
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -45,15 +47,26 @@ impl MyApp {
         let windowed_context = self.ctx.window.wc;
         let mut device = self.ctx.device;
 
-        let vertices: [f32;9] = [
-            -0.5, -0.5, 0.0,
-            0.5, -0.5, 0.0,
-            0.0, 0.5, 0.0,
+        let vertices: [f32; 12] = [
+            -0.5,  0.5, 0.0,  // top right
+            0.5, 0.5, 0.0,  // bottom right
+           0.5, -0.5, 0.0,  // bottom let
+           -0.5,  -0.5, 0.0,   // top left 
+        ];
+
+        let indices: [u32; 6] = [
+            0, 1, 2, // first triangle
+            2, 3, 0, // second triangle
         ];
 
 
-        let buffer = device.new_vertex_buffer_(Some(&vertices)).expect("Failed to create vertex buffer");
-        device.set_vertex_buffer_attribute(&buffer);
+        let buffer = device.new_vertex_buffer(48, 3, BufferUsage::StaticDraw).expect("Failed to create vertex buffer");
+        device.set_vertex_buffer_data(&buffer, &vertices, 0);
+        device.set_vertex_buffer_attribute(&buffer, 0, 3, 0);
+
+        let index = device.new_index_buffer(24, BufferUsage::StaticDraw).expect("Failed to create index buffer");
+        device.set_index_buffer_data(&index, &indices, 0);
+
         let program = device.new_program(ckrl::VERTEX_SHADER, ckrl::FRAGMENT_SHADER).expect("Failed to create shader program");
 
         event_loop.run(move |event, _, control_flow| {
@@ -61,7 +74,7 @@ impl MyApp {
             *control_flow = ControlFlow::Wait;
 
             device.clear(0.2, 0.3, 0.3, 1.0);
-            device.draw(&buffer, &program);
+            device.draw(&buffer, &index, &program);
 
             match event {
                 Event::LoopDestroyed => return,

@@ -10,13 +10,6 @@ type BufferId = <GlowContext as HasContext>::Buffer;
 type ProgramId = <GlowContext as HasContext>::Program;
 type VertexArrayId = <GlowContext as HasContext>::VertexArray;
 
-#[derive(Debug)]
-pub struct CtxWrapper(*const GlowContext);
-impl CtxWrapper {
-    pub fn new(ctx: &GlowContext) -> Self {
-        Self(ctx as *const GlowContext)
-    }
-}
 
 pub struct GraphicsDevice {
     pub gl: Rc<GlowContext>,
@@ -75,104 +68,138 @@ impl GraphicsDevice {
     pub fn draw(
         &mut self,
         vertex_buffer: &RawVertexBuffer,
+        index_buffer: &RawIndexBuffer,
         program: &RawProgram,
         ) {
         unsafe {
-            self.gl.bind_vertex_array(self.current_vertex_array);
+            //self.gl.bind_vertex_array(self.current_vertex_array);
             self.bind_vertex_buffer(Some(&vertex_buffer));
+            self.bind_index_buffer(Some(&index_buffer));
             self.bind_program(Some(program));
             self.gl.draw_arrays(
                 glow::TRIANGLES,
                 0,
-                3,
+                6,
             );
         }
     }
 
     
-    //pub fn new_vertex_buffer(
-    //    &mut self,
-    //    count: u32,
-    //    stride: u32,
-    //)
-
-    pub fn new_vertex_buffer_(
+    pub fn new_vertex_buffer(
         &mut self,
-        data: Option<&[f32]>,
+        count: usize,
+        stride: usize,
+        usage: BufferUsage,
     ) -> Result<RawVertexBuffer> {
         unsafe {
             let id = self.gl.create_buffer()?;
 
-            let u8_buffer = bytemuck::cast_slice(data.unwrap());
-            let size = u8_buffer.len();
-
             let buffer = RawVertexBuffer {
                 gl: Rc::clone(&self.gl),
                 id,
-                count: size,
-                stride: 3,
+                count,
+                stride,
             };
-    
+
             self.bind_vertex_buffer(Some(&buffer));
-    
+
             self.gl.buffer_data_size(
                 glow::ARRAY_BUFFER,
-                size as i32,
-                glow::STREAM_DRAW,
+                count as i32,
+                usage.into(),
             );
-    
-            self.gl.buffer_sub_data_u8_slice(glow::ARRAY_BUFFER, 0, u8_buffer);
-    
+
             Ok(buffer)
+        }
+
+    }
+
+    pub fn set_vertex_buffer_data(
+        &mut self,
+        buffer: &RawVertexBuffer,
+        data: &[f32],
+        offset: usize,
+    ) {
+        unsafe {    
+            self.bind_vertex_buffer(Some(&buffer));
+
+            let u8_buffer = bytemuck::cast_slice(data);
+        
+            self.gl.buffer_sub_data_u8_slice(
+                glow::ARRAY_BUFFER,
+                (offset * mem::size_of::<f32>()) as i32,
+                u8_buffer
+            );
         }
     }
 
     pub fn set_vertex_buffer_attribute(
         &mut self,
         buffer: &RawVertexBuffer,
+        index: u32,
+        size: i32,
+        offset: usize,
     ) {
         unsafe {
             self.bind_vertex_buffer(Some(buffer));
 
-            //info!("glGetError0 {}", self.gl.get_error());
-
             self.gl.vertex_attrib_pointer_f32(
-                0,
-                3,
+                index,
+                size,
                 glow::FLOAT,
                 false,
                 (buffer.stride * mem::size_of::<f32>()) as i32,
-                0,
+                (offset * mem::size_of::<f32>()) as i32,
             );
-            self.gl.enable_vertex_attrib_array(0);
+            self.gl.enable_vertex_attrib_array(index);
         }
     }
 
 
-    // pub fn new_index_buffer(
-    //     &mut self,
-    //     data: Option<&[u32]>,
-    // ) -> Result<RawIndexBuffer> {
-    //     unsafe {
-    //         let id = self.gl.create_buffer()?;
+    pub fn new_index_buffer(
+        &mut self,
+        count: usize,
+        usage: BufferUsage,
+    ) -> Result<RawIndexBuffer> {
+         unsafe {
+             let id = self.gl.create_buffer()?;
 
-    //         let buffer = RawIndexBuffer {
-    //             gl: Rc::clone(&self.gl),
-    //             id,
-    //             count,
-    //         };
+            let buffer = RawIndexBuffer {
+                gl: Rc::clone(&self.gl),
+                id,
+                count,
+            };
 
-    //         self.bind_index_buffer(Some(&buffer));
+            self.bind_index_buffer(Some(&buffer));
 
-    //         self.gl.buffer_data_size(
-    //             glow::ELEMENT_ARRAY_BUFFER,
-    //             (count * mem::size_of::<u32>()) as i32,
-    //             usage.into(),
-    //         );
+            self.gl.buffer_data_size(
+                glow::ELEMENT_ARRAY_BUFFER,
+                (count * mem::size_of::<u32>()) as i32,
+                usage.into(),
+            );
 
-    //         Ok(buffer)
-    //     }
-    // }
+            Ok(buffer)
+        }
+    }
+
+    pub fn set_index_buffer_data(
+        &mut self,
+        buffer: &RawIndexBuffer,
+        data: &[u32],
+        offset: usize,
+    ) {
+        unsafe {
+            self.bind_index_buffer(Some(&buffer));
+
+            let u8_buffer = bytemuck::cast_slice(data);
+        
+            self.gl.buffer_sub_data_u8_slice(
+                glow::ARRAY_BUFFER,
+                (offset * mem::size_of::<f32>()) as i32,
+                u8_buffer
+            );
+        }
+    }
 
     pub fn new_program(
         &mut self,
@@ -222,6 +249,17 @@ impl GraphicsDevice {
             if self.current_vertex_buffer != id {
                 self.gl.bind_buffer(glow::ARRAY_BUFFER, id);
                 self.current_vertex_buffer = id;
+            }
+        }
+    }
+
+    pub fn bind_index_buffer(&mut self, buffer: Option<&RawIndexBuffer>) {
+        unsafe {
+            let id = buffer.map(|x| x.id);
+    
+            if self.current_index_buffer != id {
+                self.gl.bind_buffer(glow::ARRAY_BUFFER, id);
+                self.current_index_buffer = id;
             }
         }
     }
