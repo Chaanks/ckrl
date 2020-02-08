@@ -23,8 +23,6 @@ pub struct GraphicsDevice {
 impl GraphicsDevice {
     pub fn new(gl: GlowContext) -> Result<GraphicsDevice> {
         unsafe {
-            // This is only needed for Core GL - if we wanted to be uber compatible, we'd
-            // turn it off on older versions.
             let current_vertex_array = gl.create_vertex_array()?;
             gl.bind_vertex_array(Some(current_vertex_array));
 
@@ -207,7 +205,12 @@ impl GraphicsDevice {
             self.bind_index_buffer(Some(&buffer));
 
             let u8_buffer = bytemuck::cast_slice(data);
-        
+            println!("u8_buffer: {:?}", u8_buffer);
+
+            let byte_len = std::mem::size_of_val(data) / std::mem::size_of::<u8>();
+            let byte_slice = std::slice::from_raw_parts(data.as_ptr() as *const u8, byte_len);
+            println!("byte_slice: {:?}", byte_slice);
+
             self.gl.buffer_sub_data_u8_slice(
                 glow::ARRAY_BUFFER,
                 (offset * mem::size_of::<f32>()) as i32,
