@@ -11,7 +11,7 @@ pub fn start_logger() {
                 record.args()
             )
         })
-        .filter(None, log::LevelFilter::Info)
+        .filter(None, log::LevelFilter::Debug)
         .init();
 }
 

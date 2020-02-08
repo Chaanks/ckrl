@@ -20,7 +20,7 @@ struct MyApp {
 
 impl MyApp {
     fn new() -> Result<Self> {
-        info!("Creation application");
+        info!("Creating application");
 
         let ctx = ContextBuilder::new()
             .with_title(WINDOW_TILE)

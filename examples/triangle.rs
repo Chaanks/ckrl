@@ -1,19 +1,15 @@
+use log::{info, error};
+
 use glutin::event::{Event, WindowEvent};
 use glutin::event_loop::ControlFlow;
-
-use glow::{Context as GlowContext, HasContext};
-
-use log::{info, error};
 
 use ckrl::context::{Context, ContextBuilder};
 use ckrl::window::InitHints;
 use ckrl::gl::BufferUsage;
 
-
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-
-const WINDOW_TILE: &'static str = "Hello window";
+const WINDOW_TILE: &'static str = "Hello triangle";
 const WINDOW_WIDTH: u32 = 800;
 const WINDOW_HEIGHT: u32 = 600;
 
@@ -24,7 +20,7 @@ struct MyApp {
 
 impl MyApp {
     fn new() -> Result<Self> {
-        info!("Creation application");
+        info!("Creating application");
 
         let ctx = ContextBuilder::new()
             .with_title(WINDOW_TILE)
@@ -38,7 +34,7 @@ impl MyApp {
     }
 
     fn run(self) {        
-        println!(
+        info!(
             "Pixel format of the window's GL context: {:?}",
            self.ctx.window.get_pixel_format()
         );
@@ -48,10 +44,10 @@ impl MyApp {
         let mut device = self.ctx.device;
 
         let vertices: [f32; 12] = [
-            -0.5,  0.5, 0.0,  // top right
-            0.5, 0.5, 0.0,  // bottom right
-           0.5, -0.5, 0.0,  // bottom let
-           -0.5,  -0.5, 0.0,   // top left 
+            -0.5,  0.5, 0.0, // Top-let
+            0.5,  0.5, 0.0, // Top-right
+            0.5, -0.5, 0.0, // Bottom-right
+            -0.5, -0.5, 0.0,  // Bottom-left
         ];
 
         let indices: [u32; 6] = [
@@ -74,7 +70,7 @@ impl MyApp {
             *control_flow = ControlFlow::Wait;
 
             device.clear(0.2, 0.3, 0.3, 1.0);
-            device.draw(&buffer, &index, &program);
+            device.draw(&buffer, &index, &program, 6);
 
             match event {
                 Event::LoopDestroyed => return,

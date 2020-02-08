@@ -2,7 +2,7 @@ use std::mem;
 use std::rc::Rc;
 use glow::{Context as GlowContext, HasContext};
 
-use log::{info, error};
+use log::{info, error, debug};
 
 use crate::Result;
 
@@ -27,9 +27,6 @@ impl GraphicsDevice {
             // turn it off on older versions.
             let current_vertex_array = gl.create_vertex_array()?;
             gl.bind_vertex_array(Some(current_vertex_array));
-
-            // TODO: Find a nice way of exposing this via the platform layer
-            // println!("Swap Interval: {:?}", video.gl_get_swap_interval());
 
             Ok(GraphicsDevice {
                 gl: Rc::new(gl),
@@ -70,17 +67,24 @@ impl GraphicsDevice {
         vertex_buffer: &RawVertexBuffer,
         index_buffer: &RawIndexBuffer,
         program: &RawProgram,
+        count: i32,
         ) {
         unsafe {
-            //self.gl.bind_vertex_array(self.current_vertex_array);
+            self.gl.bind_vertex_array(self.current_vertex_array);
             self.bind_vertex_buffer(Some(&vertex_buffer));
             self.bind_index_buffer(Some(&index_buffer));
             self.bind_program(Some(program));
             self.gl.draw_arrays(
                 glow::TRIANGLES,
                 0,
-                6,
+                count,
             );
+            // self.gl.draw_elements(
+            //     glow::TRIANGLES, 
+            //     count, 
+            //     glow::UNSIGNED_INT,
+            //     0
+            // );
         }
     }
 
@@ -92,6 +96,7 @@ impl GraphicsDevice {
         usage: BufferUsage,
     ) -> Result<RawVertexBuffer> {
         unsafe {
+            info!("New vertex buffer with capacity: {} bytes", count);
             let id = self.gl.create_buffer()?;
 
             let buffer = RawVertexBuffer {
@@ -109,6 +114,7 @@ impl GraphicsDevice {
                 usage.into(),
             );
 
+            debug!("Vertex buffer created with glGetError {}", self.gl.get_error());
             Ok(buffer)
         }
 
@@ -121,6 +127,7 @@ impl GraphicsDevice {
         offset: usize,
     ) {
         unsafe {    
+            info!("Set vertex buffer data");
             self.bind_vertex_buffer(Some(&buffer));
 
             let u8_buffer = bytemuck::cast_slice(data);
@@ -130,6 +137,8 @@ impl GraphicsDevice {
                 (offset * mem::size_of::<f32>()) as i32,
                 u8_buffer
             );
+
+            debug!("Vertex data copied in buffer with glGetError {}", self.gl.get_error());
         }
     }
 
@@ -141,6 +150,7 @@ impl GraphicsDevice {
         offset: usize,
     ) {
         unsafe {
+            info!("Set vertex buffer attribute");
             self.bind_vertex_buffer(Some(buffer));
 
             self.gl.vertex_attrib_pointer_f32(
@@ -151,7 +161,9 @@ impl GraphicsDevice {
                 (buffer.stride * mem::size_of::<f32>()) as i32,
                 (offset * mem::size_of::<f32>()) as i32,
             );
+
             self.gl.enable_vertex_attrib_array(index);
+            debug!("Vertex attribute enabled with glGetError {}", self.gl.get_error());
         }
     }
 
@@ -162,6 +174,7 @@ impl GraphicsDevice {
         usage: BufferUsage,
     ) -> Result<RawIndexBuffer> {
          unsafe {
+            info!("New index buffer with capacity: {} bytes", count);
              let id = self.gl.create_buffer()?;
 
             let buffer = RawIndexBuffer {
@@ -173,11 +186,12 @@ impl GraphicsDevice {
             self.bind_index_buffer(Some(&buffer));
 
             self.gl.buffer_data_size(
-                glow::ELEMENT_ARRAY_BUFFER,
+                glow::ARRAY_BUFFER,
                 (count * mem::size_of::<u32>()) as i32,
                 usage.into(),
             );
 
+            debug!("Index buffer created with glGetError {}", self.gl.get_error());
             Ok(buffer)
         }
     }
@@ -189,6 +203,7 @@ impl GraphicsDevice {
         offset: usize,
     ) {
         unsafe {
+            info!("Set index buffer data");
             self.bind_index_buffer(Some(&buffer));
 
             let u8_buffer = bytemuck::cast_slice(data);
@@ -198,6 +213,7 @@ impl GraphicsDevice {
                 (offset * mem::size_of::<f32>()) as i32,
                 u8_buffer
             );
+            debug!("Index data copied in buffer with glGetError {}", self.gl.get_error());
         }
     }
 
@@ -208,6 +224,7 @@ impl GraphicsDevice {
     ) -> Result<RawProgram> {
         // compile shaders from strings
         unsafe {
+            info!("New shader program");
             // vertex shader
             let vertex_id = self.gl.create_shader(glow::VERTEX_SHADER)?;
             self.gl.shader_source(vertex_id, &vertex_code);
@@ -238,6 +255,7 @@ impl GraphicsDevice {
             self.gl.delete_shader(vertex_id);
             self.gl.delete_shader(fragment_id);
             
+            debug!("Shader program created with glGetError {}", self.gl.get_error());
             Ok(RawProgram { id:program_id })
         }
     }
