@@ -68,7 +68,7 @@ impl GraphicsDevice {
         count: i32,
         ) {
         unsafe {
-            self.gl.bind_vertex_array(self.current_vertex_array);
+            //self.gl.bind_vertex_array(self.current_vertex_array);
             self.bind_vertex_buffer(Some(&vertex_buffer));
             self.bind_index_buffer(Some(&index_buffer));
             self.bind_program(Some(program));
@@ -184,7 +184,7 @@ impl GraphicsDevice {
             self.bind_index_buffer(Some(&buffer));
 
             self.gl.buffer_data_size(
-                glow::ARRAY_BUFFER,
+                glow::ELEMENT_ARRAY_BUFFER,
                 (count * mem::size_of::<u32>()) as i32,
                 usage.into(),
             );
@@ -212,7 +212,7 @@ impl GraphicsDevice {
             println!("byte_slice: {:?}", byte_slice);
 
             self.gl.buffer_sub_data_u8_slice(
-                glow::ARRAY_BUFFER,
+                glow::ELEMENT_ARRAY_BUFFER,
                 (offset * mem::size_of::<f32>()) as i32,
                 u8_buffer
             );
@@ -279,7 +279,7 @@ impl GraphicsDevice {
             let id = buffer.map(|x| x.id);
     
             if self.current_index_buffer != id {
-                self.gl.bind_buffer(glow::ARRAY_BUFFER, id);
+                self.gl.bind_buffer(glow::ELEMENT_ARRAY_BUFFER, id);
                 self.current_index_buffer = id;
             }
         }

@@ -44,17 +44,18 @@ impl MyApp {
         let mut device = self.ctx.device;
 
         let vertices: [f32; 12] = [
-            -0.5,  0.5, 0.0, // Top-let
-            0.5,  0.5, 0.0, // Top-right
-            0.5, -0.5, 0.0, // Bottom-right
-            -0.5, -0.5, 0.0,  // Bottom-left
+            0.5,  0.5, 0.0,  // top right
+            0.5, -0.5, 0.0,  // bottom right
+           -0.5, -0.5, 0.0,  // bottom let
+           -0.5,  0.5, 0.0,   // top left 
         ];
 
         let indices: [u32; 6] = [
-            0, 1, 2, // first triangle
-            2, 3, 0, // second triangle
+            1, 2, 3,    // second triangle
+            0, 1, 3,   // first triangle
         ];
 
+        let mut r = 0.0;
 
         let buffer = device.new_vertex_buffer(48, 3, BufferUsage::StaticDraw).expect("Failed to create vertex buffer");
         device.set_vertex_buffer_data(&buffer, &vertices, 0);
@@ -69,7 +70,12 @@ impl MyApp {
             //println!("{:?}", event);
             *control_flow = ControlFlow::Wait;
 
-            device.clear(0.2, 0.3, 0.3, 1.0);
+            r += 0.1;
+            if r >= 1.0 {
+                r = 0.0;
+            }
+
+            device.clear(r, 0.3, 0.3, 1.0);
             device.draw(&buffer, &index, &program, 6);
 
             match event {
