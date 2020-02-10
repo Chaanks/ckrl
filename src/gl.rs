@@ -72,17 +72,17 @@ impl GraphicsDevice {
             self.bind_vertex_buffer(Some(&vertex_buffer));
             self.bind_index_buffer(Some(&index_buffer));
             self.bind_program(Some(program));
-            self.gl.draw_arrays(
-                glow::TRIANGLES,
-                0,
-                count,
+            //self.gl.draw_arrays(
+            //    glow::TRIANGLES,
+            //    0,
+            //    count,
+            //);
+            self.gl.draw_elements(
+                 glow::TRIANGLES, 
+                 count, 
+                 glow::UNSIGNED_INT,
+                 0
             );
-            // self.gl.draw_elements(
-            //     glow::TRIANGLES, 
-            //     count, 
-            //     glow::UNSIGNED_INT,
-            //     0
-            // );
         }
     }
 
